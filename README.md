@@ -8,16 +8,16 @@
 
 ## Installation
 ### ~ Note: This is for windows os, please use terminal as administrator.
-#### Install chocolatey, go to powershell run as adminstrator:
+### Install chocolatey, go to powershell run as adminstrator:
 ```
 Set-ExecutionPolicy Bypass -Scope Process -Force; `
   iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 ```
-#### Install kubectl:
+### Install kubectl:
 ```
 choco install kubernetes-cli
 ```
-#### Test to ensure the version you installed is up-to-date:
+### Test to ensure the version you installed is up-to-date:
 ```
 kubectl version --client
 ```
