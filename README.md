@@ -2,23 +2,16 @@
 ### Kubernetes is an open-source container orchestration system for automating software deployment, scaling, and management.
 
 ## - What tools do we require for kubernetes?
-#### . minikube - create kubernetes cluster with a single node.
+#### . kubelet - create kubernetes cluster.
 #### . kubectl - command line tool used to run commands against Kubernetes clusters.
 #### . kuberadm - used to build Kubernetes (K8s) clusters.
 
-## Installation
-### ~ Note: This is for windows os, please use terminal as administrator.
-### Install chocolatey, go to powershell run as adminstrator:
+### Get the current metric server deployment (* Make you have metric-server.yaml)
 ```
-Set-ExecutionPolicy Bypass -Scope Process -Force; `
-  iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+kubectl get deployment metrics-server -n kube-system -o yaml > metrics-server.yaml
 ```
-### Install kubectl:
+### Apply the modified deployment manifest
 ```
-choco install kubernetes-cli
-```
-### Test to ensure the version you installed is up-to-date:
-```
-kubectl version --client
+kubectl apply -f metrics-server.yaml -n kube-system
 ```
 
