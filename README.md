@@ -6,15 +6,15 @@
 #### . kubectl - command line tool used to run commands against Kubernetes clusters.
 #### . kuberadm - used to build Kubernetes (K8s) clusters.
 
-### To setup kubernetes both Master Node and Worker, go the following:
+### To setup kubernetes both Master Node and Worker, go the following site:
 ```
 https://devopscube.com/setup-kubernetes-cluster-kubeadm/
 ```
-### Get the current metric server deployment (* Make you have metric-server.yaml)
+### Get the current metric server deployment (* Make you have metric-server.yaml), use command:
 ```
 kubectl get deployment metrics-server -n kube-system -o yaml > metrics-server.yaml
 ```
-### Apply the modified deployment manifest
+### Apply the modified deployment manifest, use command:
 ```
 kubectl apply -f metrics-server.yaml -n kube-system
 ```
