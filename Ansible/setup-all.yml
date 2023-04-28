@@ -1,0 +1,178 @@
+---
+- name: Kubernetes Full installation
+  hosts: kubernetes
+  become: true
+  tasks:
+  - name: Install packages 
+    apt: 
+      name: "{{ packages }}"
+      state: present
+    vars:
+      packages:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+  
+  - name: Add overlay and br_netfilter to modules-load.d
+    lineinfile:
+      path: /etc/modules-load.d/k8s.conf
+      line: '{{ item }}'
+      state: present
+      create: true
+    with_items:
+      - overlay
+      - br_netfilter
+
+  - name: Load kernel modules k8s.conf
+    command: "{{ item }}"
+    with_items:
+      - modprobe overlay
+      - modprobe br_netfilter
+
+  - name: Set sysctl parameters for kubernetes
+    ansible.posix.sysctl:
+      name: "{{ item }}"
+      state: present 
+      reload: yes 
+      value: 1
+      sysctl_file: /etc/sysctl.d/k8s.conf
+    with_items:
+      - net.bridge.bridge-nf-call-iptables
+      - net.bridge.bridge-nf-call-ip6tables
+      - net.ipv4.ip_forward
+
+  - name: Add overlay and br_netfilter to modules-load.d
+    lineinfile:
+      path: /etc/modules-load.d/crio.conf
+      line: '{{ item }}'
+      state: present
+      create: true 
+    with_items:
+      - overlay
+      - br_netfilter
+  
+  - name: Load kernel modules crio.conf 
+    command: '{{ item }}'
+    with_items:
+      - modprobe overlay
+      - modprobe br_netfilter
+
+  - name: Set sysctl parameters for kubernetes
+    ansible.posix.sysctl:
+      name: "{{ item }}"
+      state: present
+      reload: yes
+      value: 1
+      sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+    with_items:
+      - net.bridge.bridge-nf-call-iptables
+      - net.bridge.bridge-nf-call-ip6tables
+      - net.ipv4.ip_forward
+  
+  - name: Load kernel modules 99-kubernetes-cri 
+    command: '{{ item }}'
+    with_items:
+      - modprobe overlay
+      - modprobe br_netfilter
+
+  - name: Add GPG key for docker 
+    apt_key:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      state: present
+
+  - name: Add apt repository for stable version
+    apt_repository:
+      repo: deb https://download.docker.com/linux/ubuntu focal stable
+      state: present
+
+  - name: Install docker and its dependencies
+    apt: 
+      name: "{{ packages }}"
+      state: present
+      update_cache: yes
+    vars:
+      packages:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+    notify:
+      - docker status 
+
+  - name: Add ubuntu user to docker group
+    user:
+      name: "{{ username }}"
+      group: docker
+    vars:
+      username:
+      - sovichea
+      - phireak
+
+  - name: Remove swapfile from /etc/fstab
+    mount:
+      name: "{{ item }}"
+      fstype: swap 
+      state: absent
+    with_items:
+      - swap
+      - none
+  
+  - name: Disable swap
+    command: swapoff -a 
+    when: ansible_swaptotal_mb > 0
+
+  - name: Update and install crio and crio-tools
+    apt: 
+      name: "{{ item }}"
+      state: present 
+      update_cache: yes
+    with_items:
+      - cri-o
+      - cri-o-runc
+      - cri-tools
+
+  - name: Restart service cri-o 
+    ansible.builtin.systemd:
+      state: restarted
+      daemon_reload: true
+      name: crio 
+      enabled: true
+
+  - name: Add GPG key for kubernetes
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+
+  - name: Add apt repository for kubernetes
+    apt_repository:
+      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      state: present 
+      filename: kubernetes.list
+
+  - name: Install kubernetes binaries
+    apt:
+      name: "{{ packages }}"
+      state: present 
+      update_cache: yes
+    vars:
+      packages:
+        - kubeadm
+        - kubelet
+        - kubectl
+
+  - name: Configure node ip
+    lineinfile:
+      path: /etc/default/kubelet
+      line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
+  
+  - name: Restart kubelet
+    service:
+      name: kubelet
+      daemon_reload: yes
+      state: restarted
+
+  - name: Install calico pod network 
+    become: false
+    command: kubectl create -f https://docs.projectcalico.org/v3.4/getting-started/kubernetes/installation/hosted/calico.yaml
+  
