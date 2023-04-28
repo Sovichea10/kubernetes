@@ -6,4 +6,5 @@ kubectl -n kubernetes-dashboard create token admin-user
 
 ====================================>> Remove the admin ServiceAccount and ClusterRoleBinding
 kubectl -n kubernetes-dashboard delete serviceaccount admin-user
+
 kubectl -n kubernetes-dashboard delete clusterrolebinding admin-user
