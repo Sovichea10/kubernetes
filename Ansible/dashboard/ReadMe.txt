@@ -8,3 +8,6 @@ kubectl -n kubernetes-dashboard create token admin-user
 kubectl -n kubernetes-dashboard delete serviceaccount admin-user
 
 kubectl -n kubernetes-dashboard delete clusterrolebinding admin-user
+
+====================================>> Dashboard UI availabe at
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy
