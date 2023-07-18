@@ -1,0 +1,9 @@
+---
+- name: Kubernetes
+  include_tasks: "{{ item }}"
+  with_items: 
+    - full-setup.yml
+    - only-masternode.yml
+    - only-workernode.yml
+    - release-labelnode-worker.yml
+    - set-labelnode-master.yml

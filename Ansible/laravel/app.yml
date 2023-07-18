@@ -1,0 +1,74 @@
+---
+# Deployment => Run Laravel Application
+# 
+# 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-in-kubernetes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-in-kubernetes
+  template:
+    metadata:
+      labels:
+        app: laravel-in-kubernetes
+    spec:
+      initContainers:
+        - name: artisan
+          image: sovichea10/laravel10-php:8.1
+          args:
+            - /bin/bash
+            - -c 
+            - php artisan config:cache
+          envFrom:
+            - configMapRef:
+                name: database-config
+      containers:
+        - name: laravel
+          image: sovichea10/laravel10-php:8.1
+          resources:
+            limits:
+              cpu: 500m
+              memory: "512Mi"
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: database-config
+          volumeMounts:
+            - name: app
+              mountPath: /var/www/laravel10/app
+            - name: bootstrap
+              mountPath: /var/www/laravel10/bootstrap
+            - name: config
+              mountPath: /var/www/laravel10/config
+            - name: public 
+              mountPath: /var/www/laravel10/public
+            - name: resources 
+              mountPath: /var/www/laravel10/resources
+            - name: routes 
+              mountPath: /var/www/laravel10/routes       
+      volumes:
+        - name: app
+          hostPath:
+            path: /apps/laravel-application/login-and-registration/app
+        - name: bootstrap
+          hostPath:
+            path: /apps/laravel-application/login-and-registration/bootstrap
+        - name: config
+          hostPath:
+            path: /apps/laravel-application/login-and-registration/config
+        - name: public 
+          hostPath:
+            path: /apps/laravel-application/login-and-registration/public
+        - name: resources 
+          hostPath:
+            path: /apps/laravel-application/login-and-registration/resources
+        - name: routes 
+          hostPath:
+            path: /apps/laravel-application/login-and-registration/routes
+      hostNetwork: true
+      dnsPolicy: Default

@@ -1,0 +1,22 @@
+# task for set label
+
+# Step 4:
+
+- name: Display hostname
+  command: hostname
+  register: result 
+
+- name: Output hostname
+  debug:
+    var: result
+
+- name: Copy hostname to local
+  local_action: 
+    module: copy
+    content: |
+      #!/bin/bash
+
+      echo "Show hostname of worker node: {{ result.stdout }}"
+
+      kubectl label node {{ result.stdout }} node-role.kubernetes.io/worker=worker
+    dest: ./hostname.sh

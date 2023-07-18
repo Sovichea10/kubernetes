@@ -1,0 +1,12 @@
+# task for set label
+
+# Step 5:
+
+- name: Copy Label node 
+  copy:
+    src: hostname.sh 
+    dest: /hostname.sh
+    mode: 0777
+
+- name: Set Label node 
+  command: sh /hostname.sh

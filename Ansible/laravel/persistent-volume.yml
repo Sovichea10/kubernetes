@@ -1,0 +1,51 @@
+---
+# ConfigMap Database
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-config
+data:
+  DB_CONNECTION: mysql
+  DB_HOST: myapp-mysql 
+  DB_PORT: '3306'
+  DB_DATABASE: laravel 
+  DB_USERNAME: root 
+  DB_PASSWORD: secret
+---
+# Deployment => Run MySQL
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+    spec:
+      containers:
+        - image: mysql
+          name: mysql 
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "true"
+            - name: MYSQL_USER
+              value: root 
+            - name: MYSQL_DATABASE
+              value: laravel 
+            - name: MYSQL_PASSWORD
+            # read password from the ConfigMap
+              valueFrom:
+                configMapKeyRef:
+                  name: database-config
+                  key: DB_PASSWORD
+          ports:
+            - containerPort: 3306
+              targetPort: 3300
+          volumeMounts:
+            - name: mysql-persistent-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim

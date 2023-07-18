@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-config
+  labels:
+    app: myapplication
+data:
+  my-key: my-value
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+spec:
+  containers:
+    - name: myapp
+      image: sovichea10/laravel10-php:8.1
+      resources:
+        limits:
+          cpu: 500m
+          memory: "512Mi"
+      ports:
+        - containerPort: 8000
+      volumeMounts:
+        - name: configvolume
+          mountPath: /app
+  volumes:
+    - name: configvolume
+      configMap:
+        name: my-config
+        items:
+          - key: hello.txt
+            path: hello.txt    
+  hostNetwork: true
+  dnsPolicy: Default

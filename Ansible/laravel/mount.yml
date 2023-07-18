@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-in-kubernetes
+spec:
+  selector:
+    matchLabels:
+      app: laravel-in-kubernetes
+  template:
+    metadata:
+      labels:
+        app: laravel-in-kubernetes 
+    spec:
+      containers:
+        - name: laravel
+          image: sovichea10/laravel10-testapp-php:8.1-fpm
+          volumeMounts:
+            - name: apps
+              mountPath: /var/www/apps
+            - name: config 
+              mountPath: /var/www/config
+            - name: routes
+              mountPath: /var/www/routes
+          resources:
+            limits:
+              cpu: '0.001'
+              memory: 50M 
+          ports:
+            - containerPort: 9000
+      volumes:
+      # directory location on host
+        - name: apps
+          hostPath:
+            path: ./laravel10/apps
+            type: Directory
+        - name: config 
+          hostPath:
+            path: ./laravel10/config
+            type: Directory
+        - name: routes
+          hostPath:
+            path: ./laravel10/routes
+            type: Directory

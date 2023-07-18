@@ -1,0 +1,15 @@
+# task file for worker node
+
+# Step 3:
+
+- name: Copy the join command to worker node
+  copy:
+    src: join-command 
+    dest: /join-command.sh
+    mode: 0777
+
+- name: Join the node to cluster
+  command: sh /join-command.sh
+
+    
+    

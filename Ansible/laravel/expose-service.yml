@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-in-kubernetes
+spec:
+  selector:
+    app: laravel-in-kubernetes
+  type: NodePort
+  ports:
+    - port: 8000
+      targetPort: 8000
+  
