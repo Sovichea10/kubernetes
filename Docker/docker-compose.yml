@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  nginx:
+    container_name: nginx-latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    # command: ["sleep","infinity"]
+    ports:
+      - 8000:80
+    networks:
+      - nginx
+networks:
+  nginx:
+    external: true

@@ -1,11 +1,22 @@
-apiVersion: apps/v1
-kind: Deployment
+---
+kind: Namespace
+apiVersion: v1
 metadata:
   name: nginx
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nginx
+  namespace: nginx
+  labels:
+    app: nginx
 spec:
+  replicas: 7
   selector:
     matchLabels:
-      app: nginx 
+      app: nginx
   template:
     metadata:
       labels:
@@ -13,17 +24,33 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: sovichea10/nginx:v1.0
-          resources:
-            limits:
-              memory: "128Mi"
-              cpu: 500m
+          image: nginx:alpine
+          resources: {}
           ports:
             - containerPort: 80
-          env:
-            # Inject the FPM Host as we did with Docker Compose
-            - name: laravel-app-host
-              value: laravel-in-kubernetes:9000
-      hostNetwork: true
+      hostNetwork: false
       dnsPolicy: Default
-      
+      restartPolicy: Always
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx
+  namespace: nginx
+spec:
+  selector:
+    app: nginx
+  type: NodePort
+  # sessionAffinity: None
+  # externalTrafficPolicy: Cluster
+  # ipFamilies:
+  #   - IPv4
+  # ipFamilyPolicy: SingleStack
+  # internalTrafficPolicy: Cluster
+  ports:
+    - name: http-80
+      protocol: TCP
+      port: 80
+      targetPort: 80 
+      nodePort: 30001

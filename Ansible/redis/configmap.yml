@@ -1,0 +1,17 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: redis-config
+  namespace: redis
+data:
+  redis.conf: |
+    # Redis Configuration File
+    maxmemory 1000mb
+    maxmemory-policy allkeys-lru
+    maxclients 20000
+    timeout 300
+    dbfilename dump.rdb
+    dir /data
+    appendonly yes
+    save ""

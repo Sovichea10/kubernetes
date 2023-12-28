@@ -4,7 +4,7 @@
 ## - What tools do we require for kubernetes?
 #### . kubelet - create kubernetes cluster.
 #### . kubectl - command line tool used to run commands against Kubernetes clusters.
-#### . kuberadm - used to build Kubernetes (K8s) clusters.
+#### . kubeadm - used to build Kubernetes (K8s) clusters.
 
 ### To setup kubernetes both Master Node and Worker, go the following site:
 ```

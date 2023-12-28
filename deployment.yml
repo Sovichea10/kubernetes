@@ -1,0 +1,85 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: osd-internal
+  namespace: default
+  labels:
+    app: osd-internal
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: osd-internal
+  template:
+    metadata:
+      labels:
+        app: osd-internal
+    spec:
+      volumes:
+        - name: host-time
+          hostPath:
+            path: /etc/localtime
+            type: ''
+        - name: timezone
+          hostPath:
+            path: /etc/timezone
+            type: ''
+        - name: hosts
+          hostPath:
+            path: /etc/hosts
+            type: ''
+      containers:
+        - name: osd-internal-api
+          image: '${registry_url}/sovichea/osd-internal:v3'
+          ports:
+            - name: http-9000
+              containerPort: 9000
+              protocol: TCP
+            - name: http-81
+              containerPort: 81
+              protocol: TCP
+          resources: {}
+          volumeMounts:
+            - name: host-time
+              readOnly: true
+              mountPath: /etc/localtime
+            - name: timezone
+              mountPath: /etc/timezone
+            - name: hosts
+              mountPath: /etc/hosts
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: secret-registry
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: osd-internal
+  namespace: default
+spec:
+  selector:
+    app: laravel10
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  allocateLoadBalancerNodePorts: true
+  internalTrafficPolicy: Cluster
+  ports:
+    - name: http-81
+      protocol: TCP
+      port: 81
+      targetPort: 81
+      nodePort: 30001

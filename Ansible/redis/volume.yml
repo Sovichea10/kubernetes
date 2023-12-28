@@ -1,0 +1,28 @@
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: shared-redis-data-pv
+spec:
+  storageClassName: redis-data
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /redis-data
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: shared-redis-data-pvc
+  namespace: redis
+spec:
+  storageClassName: redis-data
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi

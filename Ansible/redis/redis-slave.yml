@@ -1,0 +1,46 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: redis-slave
+  namespace: redis
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: redis
+      role: slave
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: slave
+    spec:
+      containers:
+        - name: redis
+          image: 'redis:6.2-alpine'
+          ports:
+            - containerPort: 6379
+          args: 
+            - redis-server
+            - "--slaveof"
+            - "$(REDIS_MASTER_HOST)"
+            - "6379"
+          env:
+            - name: TZ
+              value: Asia/Phnom_Penh
+            - name: REDIS_MASTER_HOST
+              value: "redis-master.redis.svc.cluster.local"
+          resources: {}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        # - name: config-map
+        #   configMap:
+        #     name: redis-config
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: shared-redis-data-pvc
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always

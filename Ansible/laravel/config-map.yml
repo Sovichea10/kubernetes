@@ -1,11 +1,15 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: laravel-db-configuration
+  name: laravel10-credential
+  namespace: osr
 data:
   DB_CONNECTION: mysql
-  DB_HOST: db 
-  DB_PORT: '3306'
-  DB_DATABASE: laravel 
-  DB_USERNAME: root 
-  DB_PASSWORD: secret
+  DB_HOST: '172.19.24.24'
+  DB_PORT: '1001'
+  DB_DATABASE: dummy_bank
+  DB_USERNAME: root
+  DB_PASSWORD: bank@1234
+
+  # OSR URL - (<service_name>.<namespace>.svc.cluster.local)
+  OSR_URL: osr.osr-gateway.svc.cluster.local  

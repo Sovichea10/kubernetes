@@ -1,0 +1,65 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: redis-master
+  namespace: redis
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+    spec:
+      containers:
+        - name: redis
+          image: 'redis:6.2-alpine'
+          ports:
+            - containerPort: 6379
+          args:
+            - redis-server
+            - "/etc/redis/redis.conf"
+          env:
+            - name: TZ
+              value: Asia/Phnom_Penh
+          resources: {}
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: config-map
+              mountPath: /etc/redis
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+      volumes:
+        - name: config-map
+          configMap:
+            name: redis-config
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: shared-redis-data-pvc
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis-master
+  namespace: redis
+spec:
+  selector:
+    app: redis
+    role: master
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379

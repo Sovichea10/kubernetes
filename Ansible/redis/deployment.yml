@@ -1,0 +1,163 @@
+---
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: redis
+
+# ---
+# kind: StorageClass
+# apiVersion: shared-redis-data-pv
+# metadata:
+#   name: manual
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: WaitForFirstConsumer
+
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: shared-redis-data-pv
+spec:
+  storageClassName: redis-data
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /redis-data
+
+# ---
+# kind: PersistentVolume
+# apiVersion: v1
+# metadata:
+#   name: shared-redis-claim-pv
+# spec:
+#   storageClassName: standard
+#   capacity:
+#     storage: 3Gi
+#   accessModes:
+#     - ReadWriteOnce
+#   persistentVolumeReclaimPolicy: Retain
+#   hostPath:
+#     path: /redis-claim
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: shared-redis-data-pvc
+  namespace: redis
+spec:
+  storageClassName: redis-data
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: redis-config
+  namespace: redis
+data:
+  redis.conf: |
+    # Redis Configuration File
+    maxmemory 1000mb
+    maxmemory-policy allkeys-lru
+    maxclients 20000
+    timeout 300
+    dbfilename dump.rdb
+    dir /data
+    appendonly yes
+    save ""
+
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: redis
+  namespace: redis
+  labels:
+    app: redis
+spec:
+  serviceName: redis
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      initContainers:
+        - name: master-slave-configuration
+          image: 'redis:6.2-alpine'
+          command: [ "sh", "-c" ]
+          args:
+            - |
+              if [ "$(hostname)" == "redis-0" ]; then
+                echo "This is Master Node, no configuration needed"
+              else
+                MASTER_POD=$(hostname  -f | sed -e 's/redis-[0-9]\./redis-0./')
+                redis-cli slaveof $MASTER_POD 6379
+              fi
+          volumeMounts:
+            - name: config-map
+              mountPath: /etc/redis
+      containers:
+        - name: redis
+          image: 'redis:6.2-alpine'
+          command: [ "redis-server" ]
+          args: [ "/etc/redis/redis.conf" ]
+          ports:
+            - containerPort: 6379
+          env:
+            - name: TZ
+              value: Asia/Phnom_Penh
+          resources: {}
+          volumeMounts:
+            - name: redis-data-pvc
+              mountPath: /data
+            - name: config-map
+              mountPath: /etc/redis
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+      volumes:
+        - name: config-map
+          configMap:
+            name: redis-config
+        # - name: redis-data
+        #   persistentVolumeClaim:
+        #     claimName: shared-redis-data-pvc
+      hostNetwork: false
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-data-pvc
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests: 
+          storage: 3Gi
+      storageClassName: redis-data
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+  namespace: redis
+spec:
+  selector:
+    app: redis
+  clusterIP: None
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
