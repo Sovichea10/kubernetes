@@ -1,4 +1,4 @@
-## K8s Master
+# K8s Master
 ### Confirm Expiration
 ```
 sudo kubeadm certs check-expiration
