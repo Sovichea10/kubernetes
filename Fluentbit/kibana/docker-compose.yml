@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.10.2
+    container_name: kibana
+    command: ["sleep", "infinity"]
+    environment:
+      ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200'
+    ports:
+      - 5601:5601
+    networks:
+      - elasticsearch
+networks:
+  elasticsearch:
+    external: true

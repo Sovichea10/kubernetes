@@ -4,7 +4,7 @@ metadata:
   name: redis-slave
   namespace: redis
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: redis
@@ -35,9 +35,6 @@ spec:
             - name: redis-data
               mountPath: /data
       volumes:
-        # - name: config-map
-        #   configMap:
-        #     name: redis-config
         - name: redis-data
           persistentVolumeClaim:
             claimName: shared-redis-data-pvc

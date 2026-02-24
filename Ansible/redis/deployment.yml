@@ -4,14 +4,6 @@ apiVersion: v1
 metadata:
   name: redis
 
-# ---
-# kind: StorageClass
-# apiVersion: shared-redis-data-pv
-# metadata:
-#   name: manual
-# provisioner: kubernetes.io/no-provisioner
-# volumeBindingMode: WaitForFirstConsumer
-
 ---
 kind: PersistentVolume
 apiVersion: v1
@@ -26,21 +18,6 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   hostPath:
     path: /redis-data
-
-# ---
-# kind: PersistentVolume
-# apiVersion: v1
-# metadata:
-#   name: shared-redis-claim-pv
-# spec:
-#   storageClassName: standard
-#   capacity:
-#     storage: 3Gi
-#   accessModes:
-#     - ReadWriteOnce
-#   persistentVolumeReclaimPolicy: Retain
-#   hostPath:
-#     path: /redis-claim
 
 ---
 kind: PersistentVolumeClaim
