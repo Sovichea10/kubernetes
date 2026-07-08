@@ -6,7 +6,7 @@ sudo kubeadm certs check-expiration
 #
 ### Renew All Certs
 ```
-sudo kubeadm certs new all
+sudo kubeadm certs renew all
 ```
 #
 ### Restart Kubelet
